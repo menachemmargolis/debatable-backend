@@ -10,13 +10,13 @@ class UsersController < ApplicationController
 
     def create
       if params[:profile_photo] == ""
-        image_to_use = "https://www.attendit.net/images/easyblog_shared/July_2018/7-4-18/b2ap3_large_totw_network_profile_400.jpg"
+        image_to_use = "https://image.shutterstock.com/image-vector/no-image-available-sign-absence-260nw-373244122.jpg"
       else 
         image = Cloudinary::Uploader.upload(params[:profile_photo])
         image_to_use = image["url"]
       end
-      user_params = params.permit(:username, :password)
-      user = User.create(username:params[:username],password:params[:password], profile_photo: image_to_use , email: params[:user_email])
+      user_params = params.permit(:username, :password, :email)
+      user = User.create(username:params[:username],password:params[:password], profile_photo:image_to_use , email: params[:user_email])
       if user.valid?
         token = JWT.encode({ user_id: user.id }, 'my$ecretK3y', 'HS256')
         render json: { user: UserSerializer.new(user), token: token }, status: :created
@@ -39,18 +39,16 @@ class UsersController < ApplicationController
     end
 
     def updateUsername
-
       user = @current_user
-      user.update(username: params[:username])
+      user.update_attribute(:username, params[:username])
 
       render json: user
     end
 
     def updateProfilePhoto
-  
       user = @current_user
-      image = Cloudinary::Uploader.upload(params[:profile_photo])
-      user.update(profile_photo: image["url"])
+      image = Cloudinary::Uploader.upload(params["profile_photo"])
+      user.update_attribute(:profile_photo, image["url"])
 
       render json: user
     end
